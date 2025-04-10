@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React, { useState, useCallback, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { githubLight } from "@uiw/codemirror-theme-github";
@@ -26,7 +27,7 @@ function Preview({
     try {
       // Transform the code
       const transformedCode = Babel.transform(
-        `const {useState, useEffect, useCallback} = React;
+        `const {useState, useEffect, useCallback, useMemo, useContext} = React;
          ${code}`,
         {
           presets: ["react"],
