@@ -100,6 +100,44 @@ function App() {
   const [code, setCode] = useState(examples[selectedExample].bad);
   const [showGood, setShowGood] = useState(false);
 
+  const exampleGroups = {
+    playground: {
+      title: "🎮 Playground",
+      examples: ["playground"],
+    },
+    stateManagement: {
+      title: "🔄 State Management",
+      examples: [
+        "synced-inputs",
+        "state-preservation",
+        "prop-drilling",
+        "nested-context",
+      ],
+    },
+    effects: {
+      title: "⚡️ Effects & Side Effects",
+      examples: [
+        "unnecessary-effect",
+        "props-in-effect",
+        "window-event",
+        "fetch-in-effect",
+        "state-update-loop",
+      ],
+    },
+    performance: {
+      title: "🚀 Performance",
+      examples: ["pure-components", "cache-calculation", "transform-data"],
+    },
+    forms: {
+      title: "📝 Forms & Data Flow",
+      examples: ["submit-form"],
+    },
+    patterns: {
+      title: "🎯 Advanced Patterns",
+      examples: ["custom-hooks"],
+    },
+  };
+
   const handleExampleChange = (example: string) => {
     setSelectedExample(example);
     setCode(showGood ? examples[example].good : examples[example].bad);
@@ -134,11 +172,44 @@ function App() {
                 onChange={(e) => handleExampleChange(e.target.value)}
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2"
               >
-                {Object.entries(examples).map(([key, example]) => (
-                  <option key={key} value={key}>
-                    {example.title}
-                  </option>
-                ))}
+                <optgroup label={exampleGroups.playground.title}>
+                  <option value="playground">Playground</option>
+                </optgroup>
+                <optgroup label={exampleGroups.stateManagement.title}>
+                  {exampleGroups.stateManagement.examples.map((key) => (
+                    <option key={key} value={key}>
+                      {examples[key].title}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={exampleGroups.effects.title}>
+                  {exampleGroups.effects.examples.map((key) => (
+                    <option key={key} value={key}>
+                      {examples[key].title}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={exampleGroups.performance.title}>
+                  {exampleGroups.performance.examples.map((key) => (
+                    <option key={key} value={key}>
+                      {examples[key].title}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={exampleGroups.forms.title}>
+                  {exampleGroups.forms.examples.map((key) => (
+                    <option key={key} value={key}>
+                      {examples[key].title}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={exampleGroups.patterns.title}>
+                  {exampleGroups.patterns.examples.map((key) => (
+                    <option key={key} value={key}>
+                      {examples[key].title}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
               {!isPlayground && (
                 <button
