@@ -140,7 +140,8 @@ function App() {
 
   const handleExampleChange = (example: string) => {
     setSelectedExample(example);
-    setCode(showGood ? examples[example].good : examples[example].bad);
+    setShowGood(false);
+    setCode(examples[example].bad);
   };
 
   const toggleSolution = () => {
