@@ -1093,4 +1093,254 @@ function Content() {
     explanation:
       "Nested contexts allow you to override values from parent contexts. In this example, the UserMenu component sees the user as an admin, while other components see the original user role.",
   },
+  "synced-inputs": {
+    title: "🔄 Synced Inputs",
+    description: "Sharing state between sibling components by lifting it up",
+    bad: `function Component() {
+  return (
+    <div className="space-y-4">
+      <Input label="First input" />
+      <Input label="Second input" />
+    </div>
+  );
+}
+
+function Input({ label }) {
+  const [text, setText] = useState('');
+
+  function handleChange(e) {
+    setText(e.target.value);
+  }
+
+  return (
+    <label className="block">
+      {label}
+      <input
+        value={text}
+        onChange={handleChange}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+      />
+    </label>
+  );
+}`,
+    good: `function Component() {
+  const [text, setText] = useState('');
+
+  return (
+    <div className="space-y-4">
+      <Input
+        label="First input"
+        value={text}
+        onChange={setText}
+      />
+      <Input
+        label="Second input"
+        value={text}
+        onChange={setText}
+      />
+    </div>
+  );
+}
+
+function Input({ label, value, onChange }) {
+  return (
+    <label className="block">
+      {label}
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+      />
+    </label>
+  );
+}`,
+    explanation:
+      "By lifting the state up to the parent component, we can share the same state between multiple child components. This allows us to keep the inputs in sync.",
+  },
+  "state-preservation": {
+    title: "💾 State Preservation",
+    description:
+      "Understanding how React preserves and resets state between renders",
+    bad: `function Component() {
+  const [isPlayerA, setIsPlayerA] = useState(true);
+  
+  return (
+    <div className="space-y-4">
+      {isPlayerA ? (
+        <Counter person="Taylor" />
+      ) : (
+        <Counter person="Sarah" />
+      )}
+      <button
+        onClick={() => setIsPlayerA(!isPlayerA)}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Next player!
+      </button>
+    </div>
+  );
+}
+
+function Counter({ person }) {
+  const [score, setScore] = useState(0);
+  
+  return (
+    <div className="p-4 border rounded-lg">
+      <h2 className="font-semibold">{person}'s score: {score}</h2>
+      <button
+        onClick={() => setScore(score + 1)}
+        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+      >
+        Add one
+      </button>
+    </div>
+  );
+}`,
+    good: `function Component() {
+  const [isPlayerA, setIsPlayerA] = useState(true);
+  
+  return (
+    <div className="space-y-4">
+      {isPlayerA ? (
+        <Counter key="Taylor" person="Taylor" />
+      ) : (
+        <Counter key="Sarah" person="Sarah" />
+      )}
+      <button
+        onClick={() => setIsPlayerA(!isPlayerA)}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Next player!
+      </button>
+    </div>
+  );
+}
+
+function Counter({ person }) {
+  const [score, setScore] = useState(0);
+  
+  return (
+    <div className="p-4 border rounded-lg">
+      <h2 className="font-semibold">{person}'s score: {score}</h2>
+      <button
+        onClick={() => setScore(score + 1)}
+        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+      >
+        Add one
+      </button>
+    </div>
+  );
+}`,
+    explanation:
+      "In the bad version, React sees the Counter component in the same position and tries to preserve its state. By adding unique keys, we tell React to treat each Counter as a completely different component, ensuring state is properly reset when switching players.",
+  },
+  "pure-components": {
+    title: "🧹 Pure Components",
+    description:
+      "Keeping components pure by avoiding side effects during render",
+    bad: `function Component() {
+  const [items, setItems] = useState([]);
+  
+  // 🚫 Side effect during render
+  const sortedItems = items.sort((a, b) => a - b);
+  
+  return (
+    <div className="space-y-4">
+      <button
+        onClick={() => setItems([...items, Math.random()])}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Add Random Number
+      </button>
+      <ul className="space-y-2">
+        {sortedItems.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}`,
+    good: `function Component() {
+  const [items, setItems] = useState([]);
+  
+  // ✅ Calculate during render without side effects
+  const sortedItems = [...items].sort((a, b) => a - b);
+  
+  return (
+    <div className="space-y-4">
+      <button
+        onClick={() => setItems([...items, Math.random()])}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Add Random Number
+      </button>
+      <ul className="space-y-2">
+        {sortedItems.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}`,
+    explanation:
+      "Pure components should not modify existing objects or variables during render. Instead, create new objects when you need to make changes.",
+  },
+  "custom-hooks": {
+    title: "🎣 Custom Hooks",
+    description: "Extracting reusable logic into custom hooks",
+    bad: `function Component() {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <p>Window width: {windowWidth}px</p>
+      <p>Window height: {windowHeight}px</p>
+    </div>
+  );
+}`,
+    good: `function useWindowSize() {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return size;
+}
+
+function Component() {
+  const { width, height } = useWindowSize();
+
+  return (
+    <div className="space-y-4">
+      <p>Window width: {width}px</p>
+      <p>Window height: {height}px</p>
+    </div>
+  );
+}`,
+    explanation:
+      "Custom hooks allow you to extract and reuse stateful logic between components. They follow the same rules as React hooks and can use other hooks internally.",
+  },
 };
