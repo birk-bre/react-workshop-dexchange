@@ -181,7 +181,8 @@ export const examples: Record<string, Example> = {
   },
   "window-event": {
     title: "🪟 Window Event Listeners",
-    description: "Properly handling window event listeners with useEffect",
+    description:
+      "Properly handling window event listeners with AbortController",
     bad: `function Component() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -207,15 +208,21 @@ export const examples: Record<string, Example> = {
     good: `function Component() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // ✅ Memoize the event handler
-  const handleResize = useCallback(() => {
-    setWindowWidth(window.innerWidth);
-  }, []);
-
+  // ✅ Using AbortController for cleanup
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    function handleResize() {
+      setWindowWidth(window.innerWidth);
+    }
+
+    window.addEventListener('resize', handleResize, { signal });
+    
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -227,11 +234,12 @@ export const examples: Record<string, Example> = {
   );
 }`,
     explanation:
-      "When adding event listeners in an Effect, memoize the event handler with useCallback. This ensures the Effect doesn't need to re-run when unrelated state or props change.",
+      "When adding event listeners in an Effect, use AbortController for cleanup. This approach is more modern and provides better control over the event listener lifecycle. The signal from the AbortController is passed to addEventListener, which automatically removes the listener when the signal is aborted. This ensures proper cleanup when the component unmounts or when the Effect needs to re-run.",
   },
   "fetch-in-effect": {
     title: "🌐 Data Fetching in Effects",
-    description: "Common pitfalls when fetching data with useEffect",
+    description:
+      "Proper data fetching with race condition prevention and loading states",
     bad: `function Component() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -259,20 +267,29 @@ export const examples: Record<string, Example> = {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Proper cleanup and loading state
+  // ✅ Proper cleanup with ignore flag and loading state
   useEffect(() => {
-    let mounted = true;
+    let ignore = false;
 
     async function fetchData() {
       try {
+        setLoading(true);
         const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
+        
+        if (!response.ok) {
+          throw new Error(\`HTTP error! status: \${response.status}\`);
+        }
+        
         const json = await response.json();
-        if (mounted) {
+        
+        // Only update state if the component is still mounted
+        if (!ignore) {
           setData(json);
           setLoading(false);
         }
       } catch (err) {
-        if (mounted) {
+        // Only update state if the component is still mounted
+        if (!ignore) {
           setError(err.message);
           setLoading(false);
         }
@@ -280,8 +297,10 @@ export const examples: Record<string, Example> = {
     }
 
     fetchData();
+
+    // Cleanup function to prevent state updates after unmount
     return () => {
-      mounted = false;
+      ignore = true;
     };
   }, []);
 
@@ -297,7 +316,7 @@ export const examples: Record<string, Example> = {
   );
 }`,
     explanation:
-      "When fetching data in an Effect, always include a cleanup function to prevent setting state after unmount, handle loading states, and properly manage errors. Consider using a custom hook or a data fetching library for more complex cases.",
+      "When fetching data in an Effect, use an ignore flag to prevent race conditions and state updates after unmount. This approach ensures that if the component unmounts or re-renders with different props, the old fetch results won't affect the state. Note that fetching in Effects has several limitations: it doesn't run on the server, can create network waterfalls, doesn't cache data, and requires careful handling of race conditions. For production applications, consider using a framework's built-in data fetching or libraries like React Query, useSWR, or React Router 6.4+.",
   },
   "state-update-loop": {
     title: "🔄 Infinite State Update Loop",
@@ -1287,7 +1306,8 @@ function Counter({ person }) {
   },
   "custom-hooks": {
     title: "🎣 Custom Hooks",
-    description: "Extracting reusable logic into custom hooks",
+    description:
+      "Extracting reusable logic into custom hooks with proper cleanup",
     bad: `function Component() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
@@ -1316,6 +1336,9 @@ function Counter({ person }) {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     function handleResize() {
       setSize({
         width: window.innerWidth,
@@ -1323,8 +1346,11 @@ function Counter({ person }) {
       });
     }
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { signal });
+    
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   return size;
@@ -1341,6 +1367,6 @@ function Component() {
   );
 }`,
     explanation:
-      "Custom hooks allow you to extract and reuse stateful logic between components. They follow the same rules as React hooks and can use other hooks internally.",
+      "Custom hooks allow you to extract and reuse stateful logic between components. This example demonstrates how to create a custom hook that uses AbortController for proper cleanup of event listeners. The hook encapsulates the window size tracking logic, making it reusable across components while ensuring proper cleanup when the component unmounts or when the hook needs to re-run.",
   },
 };

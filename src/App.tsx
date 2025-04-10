@@ -173,7 +173,7 @@ function App() {
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2"
               >
                 <optgroup label={exampleGroups.playground.title}>
-                  <option value="playground">Playground</option>
+                  <option value="playground">🎮 Playground</option>
                 </optgroup>
                 <optgroup label={exampleGroups.stateManagement.title}>
                   {exampleGroups.stateManagement.examples.map((key) => (
