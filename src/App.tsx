@@ -6,6 +6,7 @@ import { githubLight } from "@uiw/codemirror-theme-github";
 import { Code2, Play, AlertCircle, CheckCircle2 } from "lucide-react";
 import * as Babel from "@babel/standalone";
 import { examples } from "./examples";
+import { Analytics } from "@vercel/analytics/react";
 
 interface ConsoleMessage {
   type: "log" | "error" | "warn";
@@ -69,6 +70,7 @@ function Preview({
 
   return (
     <div className="space-y-4 flex-1 flex flex-col">
+      <Analytics />
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Preview</h2>
         <button
