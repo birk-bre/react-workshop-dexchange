@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { githubLight } from "@uiw/codemirror-theme-github";
-import { Code2, Play, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Code2, Play, AlertCircle, CheckCircle2, Github } from "lucide-react";
 import * as Babel from "@babel/standalone";
 import { examples } from "./examples";
 import { Analytics } from "@vercel/analytics/react";
@@ -258,6 +258,17 @@ function App() {
           </div>
         </div>
       </main>
+      <footer className="max-w-7xl mx-auto px-4 py-6 border-t border-gray-200">
+        <a
+          href="https://github.com/birk-bre/react-workshop-dexchange"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <Github size={20} />
+          <span>View on GitHub</span>
+        </a>
+      </footer>
     </div>
   );
 }
